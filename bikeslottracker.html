@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Parking Space</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #parking-lot {
+            display: grid;
+            grid-template-columns: repeat(5, 100px);
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+        .space {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        .occupied {
+            background-color: red;
+        }
+        .available {
+            background-color: green;
+        }
+        #controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body bgcolor="lightblue">
+
+<h1><center>Bike Parking Space Tracker</center></h1>
+
+<div id="parking-lot"></div>
+
+<div id="controls">
+    <input type="text" id="vehicle-id" placeholder="Enter Vehicle ID">
+    <button onclick="parkVehicle()">Park Vehicle</button>
+    <button onclick="removeVehicle()">Remove Vehicle</button>
+</div>
+
+<p id="status"></p>
+
+<script>
+    const totalSpaces = 15;
+    let occupiedSpaces = 0;
+    const parkingLot = document.getElementById('parking-lot');
+    const status = document.getElementById('status');
+    const vehicleIdInput = document.getElementById('vehicle-id');
+    const spaces = [];
+
+    // Initialize parking lot
+    for (let i = 0; i < totalSpaces; i++) {
+        const space = document.createElement('div');
+        space.className = 'space available';
+        space.dataset.id = i;
+        parkingLot.appendChild(space);
+        spaces.push({ id: i, vehicleId: null });
+    }
+
+    function parkVehicle() {
+        const vehicleId = vehicleIdInput.value.trim();
+        if (!vehicleId) {
+            alert("Please enter a vehicle ID.");
+            return;
+        }
+
+        for (let space of spaces) {
+            if (space.vehicleId === null) {
+                space.vehicleId = vehicleId;
+                occupiedSpaces++;
+                updateSpaceDisplay(space.id);
+                updateStatus();
+                alertUser (`Slot ${space.id + 1} is booked`); // Notify the user
+                vehicleIdInput.value = '';
+                return;
+            }
+        }
+        const alertMessage = "No parking space is available.";
+        alertUser (alertMessage);
+    }
+
+    function alertUser (message) {
+        const speech = new SpeechSynthesisUtterance(message);
+        window.speechSynthesis.speak(speech);
+    }
+
+    function removeVehicle() {
+        const vehicleId = vehicleIdInput.value.trim();
+        if (!vehicleId) {
+            alert("Please enter a vehicle ID.");
+            return;
+        }
+
+        for (let space of spaces) {
+            if (space.vehicleId === vehicleId) {
+                const slotNumber = space.id + 1; // Slot number is index + 1
+                space.vehicleId = null;
+                occupiedSpaces--;
+                updateSpaceDisplay(space.id);
+                updateStatus();
+                alertUser (`Slot ${slotNumber} is removed`); // Notify the user
+                vehicleIdInput.value = '';
+                return;
+            }
+        }
+        alert("Vehicle ID not found.");
+    }
+
+    function updateSpaceDisplay(spaceId) {
+        const space = spaces[spaceId];
+        const spaceDiv = parkingLot.children[spaceId];
+        if (space.vehicleId) {
+            spaceDiv.className = 'space occupied';
+            spaceDiv.textContent = space.vehicleId;
+        } else {
+            spaceDiv.className = 'space available';
+            spaceDiv.textContent = '';
+        }
+    }
+
+    function updateStatus() {
+        status.textContent = `Total Spaces: ${totalSpaces}, Occupied Spaces: ${occupiedSpaces}, Available Spaces: ${totalSpaces - occupiedSpaces}`;
+    }
+</script>
+
+</body>
+</html>
